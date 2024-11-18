@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
+
+#define container_of(ptr, type, member) \
+    ((type *)((char *)(ptr) - offsetof(type, member)))
 
 #define KILL_PROCESS exit(EXIT_FAILURE)
 #define DEBUG_MSG fprintf(stderr, "\n----------------\nDebug Info:\n Error in file %s at line %d\n", __FILE__, __LINE__);
@@ -36,6 +40,25 @@ static inline double tanh(double x){
 
 static inline double sigmoid(double x){
     return 1/(1 + EXP(-x));
+}
+
+/*
+Reference counter via https://nullprogram.com/blog/2015/02/17/
+*/
+struct ref {
+    void (*free)(const struct ref *);
+    int count;
+};
+
+static inline void ref_inc(const struct ref *ref)
+{
+    ((struct ref *)ref)->count++;
+}
+
+static inline void ref_dec(const struct ref *ref)
+{
+    if (--((struct ref *)ref)->count == 0)
+        ref->free(ref);
 }
 
 #endif

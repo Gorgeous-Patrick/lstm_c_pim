@@ -40,7 +40,7 @@ LSTM * lstm_init(int input_size, int hidden_size, int output_size, int sequence_
     return lstm;
 }
 
-tensor ** lstm_forward(LSTM * self, tensor * input){
+tensor ** lstm_forward(LSTM * self, const tensor * input){
     for(int i = 0; i < self->sequence_length; i++){
         self->concat_inputs[i] = tensor_concat(self->hidden_states[i], tensor_index(input, i));
 
@@ -78,20 +78,15 @@ void lstm_cleanup(LSTM * this){
     tensor_cleanup(this->Wo);
     tensor_cleanup(this->Wy);
 
-    tensor_array_cleanup(this->hidden_states, this->sequence_length);
-    tensor_array_cleanup(this->cell_states, this->sequence_length);
+    tensor_array_cleanup(this->hidden_states, this->sequence_length + 1);
+    tensor_array_cleanup(this->cell_states, this->sequence_length + 1);
+
     tensor_array_cleanup(this->concat_inputs, this->sequence_length);
     tensor_array_cleanup(this->forget_gates, this->sequence_length);
     tensor_array_cleanup(this->input_gates, this->sequence_length);
     tensor_array_cleanup(this->candidate_gates, this->sequence_length);
     tensor_array_cleanup(this->output_gates, this->sequence_length);
     tensor_array_cleanup(this->outputs, this->sequence_length);
-
-
-
-
-    free(this->hidden_states);
-    free(this->cell_states);
 
     free(this);
 }

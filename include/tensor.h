@@ -8,6 +8,7 @@
 
 #define MAX_DIM 2
 
+typedef struct tensor_data tensor_data;
 typedef struct tensor tensor;
 
 tensor * tensor_init(int ndims, int shape[MAX_DIM]);
@@ -36,7 +37,7 @@ tensor * tensor_mul(tensor * t1, tensor * t2);
 /*
 Creates a new subtensor with shallow reference to the data from the original tensor
 */
-tensor * tensor_index(tensor * self, int index);
+tensor * tensor_index(const tensor * self, int index);
 
 /*
 Matrix multiplication between two tensors. 

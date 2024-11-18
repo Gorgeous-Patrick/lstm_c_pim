@@ -44,7 +44,7 @@ typedef struct lstm{
 } LSTM;
 
 LSTM * lstm_init(int input_size, int hidden_size, int output_size, int sequence_length);
-tensor ** lstm_forward(LSTM * lstm, tensor * input);
+tensor ** lstm_forward(LSTM * lstm, const tensor * input);
 void lstm_cleanup(LSTM * this);
 
 #endif // LSTM_H
