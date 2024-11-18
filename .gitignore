@@ -54,3 +54,4 @@ dkms.conf
 main
 
 ./build
+./.vscode
