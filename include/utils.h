@@ -22,6 +22,14 @@
 
 #define EXP(x) (((x + 3) * (x + 3)) + 3) / (((x-3) * (x-3)) + 3)
 
+static inline double exp(double x){
+    if(x < 0){
+        return 1/(EXP(x));
+    }else{
+        return EXP(x);
+    }
+}
+
 static inline double tanh(double x){
     return (EXP(x) + EXP(-x))/(EXP(x) - EXP(-x));
 }

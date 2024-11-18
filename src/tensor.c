@@ -129,11 +129,14 @@ tensor * _tensor_ones(int ndims, int shape[MAX_DIM]){
     return t;
 }
 
+/*
+Generates a random number between -1 and 1
+ */
 tensor * _tensor_rand(int ndims, int shape[MAX_DIM]){
     tensor * t = tensor_init(ndims, shape);
 
     for(int i = 0; i < t->length; i++){
-        t->data[i] = (double)arc4random_uniform(RAND_MAX)/RAND_MAX;               
+        t->data[i] = (double)(arc4random_uniform(RAND_MAX) + RAND_MAX)/RAND_MAX - 1;               
     }
 
     return t;
