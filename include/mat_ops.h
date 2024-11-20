@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include "utils.h"
 
-static inline void _serial_sigmoid(double * a, int length){
+static inline void vector_sigmoid(double * a, int length){
     for(int i = 0; i < length; i++){
         a[i] = sigmoid(a[i]);
     }
 }
 
-static inline void _serial_tanh(double * a, int length){
+static inline void vector_tanh(double * a, int length){
     for(int i = 0; i < length; i++){
         a[i] = tanh(a[i]);
     }
@@ -51,10 +51,14 @@ static inline void matrix_addition(const double * a, const double * b, double * 
     }
 }
 
-static inline void _serial_multiplication(const double * a, const double * b, double * c, unsigned int length){
+static inline void hadamard_product(const double * a, const double * b, double * c, unsigned int length){
     for(size_t i = 0; i < length; i++){
         c[i] = a[i] * b[i];
     }
+}
+
+static inline double randn(){
+    return (double)( 2 * arc4random_uniform(RAND_MAX))/RAND_MAX - 1;
 }
 
 #endif // MAT_OPS_H

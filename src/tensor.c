@@ -131,8 +131,7 @@ tensor * _tensor_rand(int ndims, int shape[MAX_DIM]){
     tensor * t = tensor_init(ndims, shape);
 
     for(int i = 0; i < t->length; i++){
-        double rand = (double)( 2 * arc4random_uniform(RAND_MAX))/RAND_MAX - 1;
-        tensor_set_at_(t, rand, i);               
+        tensor_set_at_(t, randn(), i);               
     }
 
     return t;
@@ -174,7 +173,7 @@ tensor * tensor_plus(tensor * self, tensor * t1, tensor * t2){
 tensor * tensor_mul(tensor * self, tensor * t1, tensor * t2){
     TENSOR_EXIST(self);
 
-    return tensor_binary_point_wise_op(self, t1, t2, _serial_multiplication);
+    return tensor_binary_point_wise_op(self, t1, t2, hadamard_product);
 }
 
 
@@ -293,7 +292,7 @@ void tensor_sigmoid(tensor * self, tensor * in){
     TENSOR_CHECK(self->length != in->length, "Tensor size mismatch %d != %d", self->length, in->length);
 
     tensor_clone(self, in);
-    _serial_sigmoid(tensor_data(self), self->length);
+    vector_sigmoid(tensor_data(self), self->length);
 }
 
 void tensor_tanh(tensor * self, tensor * in){
@@ -303,7 +302,7 @@ void tensor_tanh(tensor * self, tensor * in){
     TENSOR_CHECK(self->length != in->length, "Tensor size mismatch %d != %d", self->length, in->length);
 
     tensor_clone(self, in);
-    _serial_tanh(tensor_data(in), self->length);
+    vector_tanh(tensor_data(in), self->length);
 }
 
 void tensor_cleanup(tensor * self){
