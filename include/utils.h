@@ -22,6 +22,10 @@
     memory;\
 })
 
+#define SAFE_FREE(arr) ({ \
+    if(arr != NULL){free(arr); arr = NULL;}\
+})
+
 #define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
 
 #define EXP(x) (((x + 3) * (x + 3)) + 3) / (((x-3) * (x-3)) + 3)

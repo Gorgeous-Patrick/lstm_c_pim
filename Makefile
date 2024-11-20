@@ -32,5 +32,8 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.$(C_EXT)
 $(PROJECT): $(C_OBJECTS)
 	$(COMPILE) $(C_OBJECTS) -o $(PROJECT)
 
+leak: $(PROJECT)
+	leaks --atExit -- ./$(PROJECT)
+
 clean:
 	rm -rf $(PROJECT) $(C_OBJECTS)

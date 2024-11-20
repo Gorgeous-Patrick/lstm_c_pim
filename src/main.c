@@ -17,7 +17,7 @@ int main(){
 
     int input_shape[2] = {input_length, sequence_length};
     tensor * input = tensor_rand(input_shape);
-
+    
 
     tensor ** outputs = lstm_forward(lstm, input);
 
@@ -25,5 +25,6 @@ int main(){
         tensor_printf(outputs[i]);
     }
 
+    tensor_cleanup(input);
     lstm_cleanup(lstm);
 }

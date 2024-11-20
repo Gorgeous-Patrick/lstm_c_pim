@@ -2,9 +2,9 @@
 #define LSTM_H
 
 #include "tensor.h"
+#include <assert.h>
 
-#define _sigmoid tensor_sigmoid
-#define _tanh tensor_tanh
+
 #define _plus tensor_plus
 #define _mul tensor_mul
 #define _mat_mul tensor_mat_mul
@@ -44,7 +44,8 @@ typedef struct lstm{
 } LSTM;
 
 LSTM * lstm_init(int input_size, int hidden_size, int output_size, int sequence_length);
-tensor ** lstm_forward(LSTM * lstm, const tensor * input);
+tensor ** lstm_forward(LSTM * lstm, tensor * input);
 void lstm_cleanup(LSTM * this);
+void tensor_array_cleanup(tensor ** array, int size);
 
 #endif // LSTM_H
