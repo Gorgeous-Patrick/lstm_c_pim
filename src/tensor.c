@@ -16,15 +16,8 @@ struct tensor{
     int strides[2];
 };
 
-typedef void (*point_wise_op)(const double *, const double *, double *, unsigned int);
-
-
-
-static inline void _dim_check(int ndims){
-    if(ndims < 1 || ndims > MAX_DIM){
-        PANIC("Dimensions should be at least 1 and not greater than %d\n", MAX_DIM);
-    }
-}
+typedef void (*point_wise_bin_op)(const double *, const double *, double *, unsigned int);
+typedef void (*point_wise_ord_op)(double *, int);
 
 static inline void _shape_check(int axis_size){
     if(axis_size < 1){
@@ -32,15 +25,15 @@ static inline void _shape_check(int axis_size){
     }
 }
 
-static inline void _size_check(int ndims, int shape[MAX_DIM]){
-    _dim_check(ndims);
+static inline void check_size(int ndims, int shape[MAX_DIM]){
+    TENSOR_CHECK(ndims < 1 || ndims > MAX_DIM, "Dimensions should be at least 1 and not greater than %d\n", MAX_DIM)
 
     for(int i = 0; i < ndims; i++){
         _shape_check(shape[i]);
     }
 }
 
-static inline int _get_length(int ndims, int shape[MAX_DIM]){
+static inline int calculate_length(int ndims, int shape[MAX_DIM]){
     int length = 1;
     for(int i = 0; i < ndims; i++){
         length *= shape[i];
@@ -55,15 +48,15 @@ static inline void tensor_set_size(tensor * self, int ndims, int * shape, int le
         self->shape[i] = shape[i];
     }
 
-    self->length = _get_length(ndims, shape);
+    self->length = calculate_length(ndims, shape);
     assert(self->length == length);
 }
 
 /*
 Initialize a tensor without creating memory for its data
 */
-static inline tensor * _tensor_shallow_init(int ndims, int shape[MAX_DIM]){
-    _size_check(ndims, shape);
+static inline tensor * tensor_shallow_init(int ndims, int shape[MAX_DIM]){
+    check_size(ndims, shape);
 
     tensor * t = (tensor *)SAFE_MALLOC(sizeof(tensor));
     t->ndims = ndims;
@@ -72,7 +65,7 @@ static inline tensor * _tensor_shallow_init(int ndims, int shape[MAX_DIM]){
         t->shape[i] = shape[i];
     }
 
-    t->length = _get_length(ndims, shape);
+    t->length = calculate_length(ndims, shape);
     t->data = NULL;
     t->offset = 0;
 
@@ -99,8 +92,33 @@ static inline void tensor_copy_data_(tensor * dest, tensor * src, int length, in
     }
 }
 
+static inline void tensor_copy_from_data(tensor * self, Data * data, int shape[], int ndims, int length, int offset){
+    TENSOR_CHECK(offset < 0, "Invalid tensor offset");
+
+    if(self->data != data){
+        if(self->data != NULL){
+            data_dec(self->data);
+        }
+
+        self->data = data;
+        data_inc(self->data);
+    }
+
+    tensor_set_size(self, ndims, shape, length);
+    self->offset = offset;
+}
+
+static inline void tensor_unary_point_wise_op(tensor * self, tensor * in, point_wise_ord_op op){
+    TENSOR_EXIST(self);
+    TENSOR_EXIST(in);
+
+    TENSOR_CHECK(self->length != in->length, "Tensor size mismatch %d != %d", self->length, in->length);
+    tensor_clone(self, in);
+    op(tensor_data(self), self->length);
+}
+
 tensor * tensor_init(int ndims, int shape[MAX_DIM]){
-    tensor * t = _tensor_shallow_init(ndims, shape);
+    tensor * t = tensor_shallow_init(ndims, shape);
     t->data = data_init(t->length);
 
     return t;
@@ -127,7 +145,7 @@ tensor * _tensor_ones(int ndims, int shape[MAX_DIM]){
 /*
 Generates a random number between -1 and 1
  */
-tensor * _tensor_rand(int ndims, int shape[MAX_DIM]){
+tensor * tensor_rand(int ndims, int shape[MAX_DIM]){
     tensor * t = tensor_init(ndims, shape);
 
     for(int i = 0; i < t->length; i++){
@@ -154,7 +172,7 @@ double * tensor_data(tensor * self){
     return data_raw_ptr(self->data) + self->offset;
 }
 
-tensor * tensor_binary_point_wise_op(tensor * self, tensor * t1, tensor * t2, point_wise_op op){
+tensor * tensor_binary_point_wise_op(tensor * self, tensor * t1, tensor * t2, point_wise_bin_op op){
     if((t1->shape[0] != t2->shape[0]) || (t1->shape[1] != t2->shape[1])){
         PANIC("Tensor size mismatch");
     }
@@ -176,24 +194,6 @@ tensor * tensor_mul(tensor * self, tensor * t1, tensor * t2){
     return tensor_binary_point_wise_op(self, t1, t2, hadamard_product);
 }
 
-
-
-void tensor_copy_from_data(tensor * self, Data * data, int shape[], int ndims, int length, int offset){
-    TENSOR_CHECK(offset < 0, "Invalid tensor offset");
-
-    if(self->data != data){
-        if(self->data != NULL){
-            data_dec(self->data);
-        }
-
-        self->data = data;
-        data_inc(self->data);
-    }
-
-    tensor_set_size(self, ndims, shape, length);
-    self->offset = offset;
-}
-
 int * tensor_shape(tensor * self){
     return self->shape;
 }
@@ -210,7 +210,7 @@ tensor * tensor_select(tensor * self, tensor * src, int index){
     self->offset += index * src->shape[1];
     self->shape[0] = src->shape[1];
     self->shape[1] = 1;
-    self->length = _get_length(self->ndims, self->shape);
+    self->length = calculate_length(self->ndims, self->shape);
 
     return self;
 }
@@ -242,11 +242,12 @@ void tensor_printf(tensor * self){
 
 
 tensor * tensor_mat_mul(tensor * self, tensor * t1, tensor * t2){
+    TENSOR_EXIST(self);
+
     TENSOR_CHECK(t1->shape[1] != t2->shape[0],
         "Mismatch tensor sizes [%d, %d] x [%d, %d]\n", t1->shape[0], t1->shape[1], t2->shape[0], t2->shape[1]
     );
 
-    TENSOR_CHECK(self == NULL, "Tensor undefined");
     TENSOR_CHECK(self->shape[0] != t1->shape[0] && self->shape[1] != t2->shape[1], 
         "Mismatch tensor sizes: Expected [%d, %d], Got [%d, %d]\n", t1->shape[0], t2->shape[1], self->shape[0], self->shape[1]
     );
@@ -270,15 +271,6 @@ tensor * tensor_mat_mul(tensor * self, tensor * t1, tensor * t2){
     return self;
 }
 
-tensor * tensor_copy(tensor * self){
-    tensor * result = tensor_init(self->ndims, self->shape);
-    result->offset = self->offset;
-
-    tensor_copy_data_(result, self, self->length, self->offset);
-
-    return result;
-}
-
 void tensor_clone(tensor * self, tensor * src){
     if(self != src){
         tensor_copy_from_data(self, src->data, src->shape, src->ndims, src->length, src->offset);
@@ -286,37 +278,19 @@ void tensor_clone(tensor * self, tensor * src){
 }
 
 void tensor_sigmoid(tensor * self, tensor * in){
-    TENSOR_EXIST(self);
-    TENSOR_EXIST(in);
-
-    TENSOR_CHECK(self->length != in->length, "Tensor size mismatch %d != %d", self->length, in->length);
-
-    tensor_clone(self, in);
-    vector_sigmoid(tensor_data(self), self->length);
+    tensor_unary_point_wise_op(self, in, vector_sigmoid);
 }
 
 void tensor_tanh(tensor * self, tensor * in){
-    TENSOR_EXIST(self);
-    TENSOR_EXIST(in);
-
-    TENSOR_CHECK(self->length != in->length, "Tensor size mismatch %d != %d", self->length, in->length);
-
-    tensor_clone(self, in);
-    vector_tanh(tensor_data(in), self->length);
+    tensor_unary_point_wise_op(self, in, vector_tanh);
 }
 
 void tensor_cleanup(tensor * self){
-    // printf("called");
     if(self == NULL){
         return;
     }
 
     if(self->data != NULL){
-
-        // if(self->length == 480){
-        //     printf("Freeing input %d\n", self->data->refcount.count);
-        // }
-
         data_dec(self->data);
     }
     

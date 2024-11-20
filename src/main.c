@@ -16,7 +16,7 @@ int main(){
     LSTM * lstm = lstm_init(input_size, hidden_size, output_size, sequence_length);
 
     int input_shape[2] = {input_length, sequence_length};
-    tensor * input = tensor_rand(input_shape);
+    tensor * input = tensor_rand_(input_shape);
     
 
     tensor ** outputs = lstm_forward(lstm, input);

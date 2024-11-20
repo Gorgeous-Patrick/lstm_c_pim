@@ -19,6 +19,14 @@ static inline tensor ** allocate_tensor_array(int size, int * shape){
     return array;
 }
 
+static inline void tensor_array_cleanup(tensor ** array, int size){
+    for(int i = 0; i < size; i++){
+        tensor_cleanup(array[i]);
+    }
+
+    SAFE_FREE(array);
+}
+
 LSTM * lstm_init(int input_size, int hidden_size, int output_size, int sequence_length){
     LSTM * lstm = (LSTM *)SAFE_MALLOC(sizeof(LSTM));
 
@@ -29,11 +37,11 @@ LSTM * lstm_init(int input_size, int hidden_size, int output_size, int sequence_
     lstm->hidden_size = hidden_size;
     lstm->sequence_length = sequence_length;
 
-    lstm->Wf = tensor_rand(weight_shape);
-    lstm->Wi = tensor_rand(weight_shape);
-    lstm->Wc = tensor_rand(weight_shape);
-    lstm->Wo = tensor_rand(weight_shape);
-    lstm->Wy = tensor_rand(output_shape);
+    lstm->Wf = tensor_rand_(weight_shape);
+    lstm->Wi = tensor_rand_(weight_shape);
+    lstm->Wc = tensor_rand_(weight_shape);
+    lstm->Wo = tensor_rand_(weight_shape);
+    lstm->Wy = tensor_rand_(output_shape);
 
 
     int init_shape[2] = {hidden_size, 1};
@@ -80,7 +88,6 @@ tensor ** lstm_forward(LSTM * self, tensor * input){
         tensor_mat_mul(self->output_gates[i], self->Wo, self->concat_inputs[i]);
         tensor_sigmoid_(self->output_gates[i]);
 
-
         tensor_mul(self->cell_states[i], self->forget_gates[i], self->cell_states[i]);
         tensor_mul(self->cell_states[i + 1], self->input_gates[i], self->candidate_gates[i]);
         tensor_plus(self->cell_states[i + 1], self->cell_states[i + 1], self->cell_states[i]);
@@ -96,15 +103,7 @@ tensor ** lstm_forward(LSTM * self, tensor * input){
     return self->outputs;
 }
 
-void tensor_array_cleanup(tensor ** array, int size){
-    for(int i = 0; i < size; i++){
 
-            tensor_cleanup(array[i]);
-
-    }
-
-    SAFE_FREE(array);
-}
 
 void lstm_cleanup(LSTM * this){
     if(this == NULL){
