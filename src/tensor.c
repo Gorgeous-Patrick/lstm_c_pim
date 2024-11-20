@@ -184,7 +184,7 @@ void tensor_copy_from_data(tensor * self, Data * data, int shape[], int ndims, i
 
     if(self->data != data){
         if(self->data != NULL){
-            free(self->data);
+            data_dec(self->data);
         }
 
         self->data = data;

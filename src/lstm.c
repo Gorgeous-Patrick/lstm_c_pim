@@ -115,6 +115,7 @@ void lstm_cleanup(LSTM * this){
     tensor_cleanup(this->Wi);
     tensor_cleanup(this->Wo);
     tensor_cleanup(this->Wy);
+    tensor_cleanup(this->Wc);
 
     tensor_array_cleanup(this->hidden_states, this->sequence_length + 1);
     tensor_array_cleanup(this->cell_states, this->sequence_length + 1);
