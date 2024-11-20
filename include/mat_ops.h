@@ -16,7 +16,7 @@ static inline void _serial_tanh(double * a, int length){
     }
 }
 
-static inline double _serial_dot_product(const double * a, const double * b, unsigned int length){
+static inline double vector_dot_product(const double * a, const double * b, unsigned int length){
     double output = 0;
     for(size_t i = 0; i < length; i++){
         output += a[i] * b[i];
@@ -25,7 +25,7 @@ static inline double _serial_dot_product(const double * a, const double * b, uns
     return output;
 }
 
-static inline double * _serial_matrix_multiplication(const double * a, const double * b, double * c, int m, int p, int n){    
+static inline double * matrix_multiplication(const double * a, const double * b, double * c, int m, int p, int n){    
     // Initialize the result matrix to zero
     for (int i = 0; i < m; ++i) {
         for (int j = 0; j < n; ++j) {
@@ -45,7 +45,7 @@ static inline double * _serial_matrix_multiplication(const double * a, const dou
     return c;
 }
 
-static inline void _serial_addition(const double * a, const double * b, double * c, unsigned int length){
+static inline void matrix_addition(const double * a, const double * b, double * c, unsigned int length){
     for(size_t i = 0; i < length; i++){
         c[i] = a[i] + b[i];
     }

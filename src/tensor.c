@@ -168,7 +168,7 @@ tensor * tensor_binary_point_wise_op(tensor * self, tensor * t1, tensor * t2, po
 tensor * tensor_plus(tensor * self, tensor * t1, tensor * t2){
     TENSOR_EXIST(self);
 
-    return tensor_binary_point_wise_op(self, t1, t2, _serial_addition);
+    return tensor_binary_point_wise_op(self, t1, t2, matrix_addition);
 }
 
 tensor * tensor_mul(tensor * self, tensor * t1, tensor * t2){
@@ -253,11 +253,11 @@ tensor * tensor_mat_mul(tensor * self, tensor * t1, tensor * t2){
     );
 
     if(self->length == 1){
-        double output = _serial_dot_product(tensor_data(t1), tensor_data(t2), t1->length);
+        double output = vector_dot_product(tensor_data(t1), tensor_data(t2), t1->length);
         tensor_set_at_(self, output, 0);
     }else{
         //perform multiplication and write results to the stored pointer for the result tensor
-        _serial_matrix_multiplication(
+        matrix_multiplication(
                 tensor_data(t1), 
                 tensor_data(t2), 
                 tensor_data(self),
