@@ -90,8 +90,8 @@ void lstm_cleanup(LSTM * this){
 
 
 
-    free(this->hidden_states);
-    free(this->cell_states);
+    // free(this->hidden_states);
+    // free(this->cell_states);
 
-    free(this);
+    // free(this);
 }

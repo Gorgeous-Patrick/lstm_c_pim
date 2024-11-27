@@ -1,4 +1,3 @@
-#include <time.h>
 #include <string.h>
 
 #include "tensor.h"
@@ -136,7 +135,7 @@ tensor * _tensor_rand(int ndims, int shape[MAX_DIM]){
     tensor * t = tensor_init(ndims, shape);
 
     for(int i = 0; i < t->length; i++){
-        t->data[i] = (double)(arc4random_uniform(RAND_MAX) + RAND_MAX)/RAND_MAX - 1;               
+        t->data[i] = (double)i;               
     }
 
     return t;
@@ -267,6 +266,6 @@ void tensor_cleanup(tensor * self){
         return;
     }
 
-    free(self->data);
-    free(self);
+    // free(self->data);
+    // free(self);
 }

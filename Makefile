@@ -1,7 +1,7 @@
 CFLAGS = -Wall -Wextra -std=c2x -g
-CC = gcc  
+CC = dpu-upmem-dpurte-clang
 
-SOURCE_DIR = ./src
+SOURCE_DIR = ./dev_src
 BUILD_DIR = ./build
 
 C_EXT = c
@@ -31,6 +31,9 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.$(C_EXT)
 
 $(PROJECT): $(C_OBJECTS)
 	$(COMPILE) $(C_OBJECTS) -o $(PROJECT)
+
+docker:
+	docker run --rm -v $(PWD):/app -w /app johnramsden/upmem make && bash
 
 clean:
 	rm -rf $(PROJECT) $(C_OBJECTS)
